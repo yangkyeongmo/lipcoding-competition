@@ -206,6 +206,7 @@ jobs:
           echo "name=$($issue.body.participantName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf-8 -Append
           echo "issueNumber=$($issue.number)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf-8 -Append
           echo "submittedAt=$([TimeZoneInfo]::ConvertTime($issue.createdAt, $tzi).ToString("yyyy-MM-dd HH:mm:ss.fff") + " +09:00")" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf-8 -Append
+          echo "submittedAtShort=$([TimeZoneInfo]::ConvertTime($issue.createdAt, $tzi).ToString("HH:mm:ss"))" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf-8 -Append
           echo "githubId=$($issue.body.gitHubHandle)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf-8 -Append
           echo "repository=$($issue.body.gitHubRepository)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf-8 -Append
           echo "screenshot=$($issue.body.screenshotUrl)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf-8 -Append
@@ -284,12 +285,12 @@ jobs:
           $validBackend = $true
 
           if (-not (Test-Path -Path $frontendAppPath)) {
-            Write-Error "Frontend app path '$frontendAppPath' does not exist."
+            Write-Output "Frontend app path '$frontendAppPath' does not exist."
             $validFrontend = $false
           }
 
           if (-not (Test-Path -Path $backendAppPath)) {
-            Write-Error "Backend app path '$backendAppPath' does not exist."
+            Write-Output "Backend app path '$backendAppPath' does not exist."
             $validBackend = $false
           }
 
@@ -317,7 +318,7 @@ jobs:
           body: |
             👋🏼 @${{ steps.issue.outputs.githubId }} 님!
 
-            프론트엔드 앱 또는 백엔드 앱을 찾을 수 없습니다. 😢 경로를 다시 한 번 확인하세요.
+            지정한 경로에서 프론트엔드 앱 또는 백엔드 앱을 찾을 수 없습니다. 😢 경로를 다시 한 번 확인하세요.
 
       - name: Close issue - Invalid
         if: |
@@ -475,6 +476,8 @@ jobs:
 
             제출하신 앱이 테스트를 통과하지 못했습니다. 요구사항을 다시 한 번 확인하고, 앱을 수정한 후 다시 제출해 주세요. 😢
 
+            👉 [앱 테스트 결과 확인하기](../actions/runs/${{ github.run_id }}) 👈
+
       - name: Close issue - Test Failed
         if: |
           steps.test-results.outputs.passed == 'false'
@@ -510,6 +513,8 @@ jobs:
 
             제출하신 앱이 테스트를 통과했습니다. 수고하셨습니다! 🎉
 
+            👉 [본선 진출자 명단 보기](../blob/main/hall-of-fame.md) 👈
+
       - name: Update Hall of Fame
         if: |
           steps.test-results.outputs.passed == 'true'
@@ -517,20 +522,23 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          $submittedAt = "${{ steps.issue.outputs.submittedAt }}".Replace("-", "%2F").Replace(' ', '%20').Replace("+", "%2B").Replace(':', '%3A')
+          $submittedAtShort = "${{ steps.issue.outputs.submittedAtShort }}".Replace("-", "%2F").Replace(' ', '%20').Replace("+", "%2B").Replace(':', '%3A')
+
           $hallOfFame = Get-Content -Path ./hall-of-fame.md -Raw
           $hallOfFame += "| ${{ steps.issue.outputs.name }} "
           $hallOfFame += "| [@${{ steps.issue.outputs.githubId }}](https://github.com/${{ steps.issue.outputs.githubId }}) "
-          $hallOfFame += "| [${{ steps.issue.outputs.repository }}](${{ steps.issue.outputs.repository }}) "
+          $hallOfFame += "| [${{ steps.issue.outputs.repository }}](https://github.com/${{ steps.issue.outputs.repository }}) "
           $hallOfFame += "| [${{ steps.issue.outputs.video }}](${{ steps.issue.outputs.video }}) "
-          $hallOfFame += "| ${{ steps.issue.outputs.submittedAt }} |`n"
+          $hallOfFame += "| <img src=`"https://img.shields.io/badge/$($submittedAt)-blue`" alt=`"제출시각: ${{ steps.issue.outputs.submittedAt }}`" /> |`n"
           $hallOfFame | Out-File -FilePath ./hall-of-fame.md -Encoding utf8 -Force
 
           $readme = Get-Content -Path ./README.md -Raw
           $readme += "| ${{ steps.issue.outputs.name }} "
           $readme += "| [@${{ steps.issue.outputs.githubId }}](https://github.com/${{ steps.issue.outputs.githubId }}) "
-          $readme += "| [${{ steps.issue.outputs.repository }}](${{ steps.issue.outputs.repository }}) "
+          $readme += "| [${{ steps.issue.outputs.repository }}](https://github.com/${{ steps.issue.outputs.repository }}) "
           $readme += "| [${{ steps.issue.outputs.video }}](${{ steps.issue.outputs.video }}) "
-          $readme += "| ${{ steps.issue.outputs.submittedAt }} |`n"
+          $readme += "| <img src=`"https://img.shields.io/badge/$($submittedAtShort)-blue`" alt=`"제출시각: ${{ steps.issue.outputs.submittedAt }}`" /> |`n"
           $readme | Out-File -FilePath ./README.md -Encoding utf8 -Force
 
           git config --global user.name "LipCoding Bot"
