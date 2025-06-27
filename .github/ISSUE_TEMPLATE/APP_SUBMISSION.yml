@@ -126,8 +126,8 @@ body:
   id: backend_app_run_command
   attributes:
     label: '백엔드 앱 실행 명령어'
-    description: '백엔드 앱을 실행하기 위한 명령어를 입력해 주세요. 앱은 백그라운드 프로세스로 실행시켜야 합니다. (예: `./gradlew build && ./gradlew bootRun &` 또는 `./run_backend.sh` 등)'
-    placeholder: '백엔드 앱을 실행하기 위한 명령어를 입력해 주세요. 앱은 백그라운드 프로세스로 실행시켜야 합니다. (예: "./gradlew build && ./gradlew bootRun &" 또는 "./run_backend.sh" 등)'
+    description: '백엔드 앱을 실행하기 위한 명령어를 입력해 주세요. 앱은 백그라운드 프로세스로 실행시켜야 합니다. (예: `./gradlew build && ./gradlew bootRun &` 또는 `npm install && npm start &` 또는 `./run_backend.sh` 등)'
+    placeholder: '백엔드 앱을 실행하기 위한 명령어를 입력해 주세요. 앱은 백그라운드 프로세스로 실행시켜야 합니다. (예: "./gradlew build && ./gradlew bootRun &" 또는 `npm install && npm start &` 또는 `./run_backend.sh` 등)'
   validations:
     required: true
 
