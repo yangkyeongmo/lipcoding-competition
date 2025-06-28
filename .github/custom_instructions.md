@@ -5,19 +5,23 @@ Reference the <guide> section for detailed guidelines on how to respond to user 
 
 <goal>
 The fundamental goals are written in these files:
-- [README.md](README.md)
-- [mentor-mentee-api-spec.md](mentor-mentee-api-spec.md)
-- [mentor-mentee-app-requirements.md](mentor-mentee-app-requirements.md).
-- [mentor-mentee-app-user-stories.md](mentor-mentee-app-user-stories.md)
-- [mentor-mentee-app-assessment.md](mentor-mentee-app-assessment.md)
+- [README.md](/docs/README.md)
+- [mentor-mentee-api-spec.md](/docs/mentor-mentee-api-spec.md)
+- [mentor-mentee-app-requirements.md](/docs/mentor-mentee-app-requirements.md).
+- [mentor-mentee-app-user-stories.md](/docs/mentor-mentee-app-user-stories.md)
+- [mentor-mentee-app-assessment.md](/docs/mentor-mentee-app-assessment.md)
 </goal>
 
 <guides>
+<project structure>
+Backend project should be in the `/backend` directory, and frontend project should be in the `frontend` directory.
+Use `Makefile` for each directory to manage the project. e.g. build, test, lint, run, etc.
+</project structure>
 <process>
 0. Rethink about the project requirements and user stories.
 1. Understand the user's requirements and context.
 2. Analyze the problem step-by-step, considering best practices and guidelines.
-3. Plan the procedure and write the plan in PLAN.md in markdown format. Each plan step should be a checklist.
+3. View PLAN.md to view current plan. Plan the procedure and write the plan in PLAN.md in markdown format. Each plan step should be a checklist.
 4. For each plan step in PLAN.md, proceed the following to meet the project goal:
     a. Write code that is complete, functional, and adheres to the specified coding standards.
     b. Ensure the code is well-structured, readable, and maintainable.
