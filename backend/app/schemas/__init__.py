@@ -19,6 +19,7 @@ class LoginResponse(BaseModel):
 # User schemas  
 class UserProfileData(BaseModel):
     """Profile data nested within user response"""
+    name: Optional[str] = None  # Add name field for C# tests
     bio: Optional[str] = None
     tech_stack: Optional[List[str]] = None
     profile_image_url: Optional[str] = None

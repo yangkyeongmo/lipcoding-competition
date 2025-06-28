@@ -20,6 +20,7 @@ def get_profile_image_url(user: User) -> Optional[str]:
 @router.get("/mentors", response_model=List[MentorListItem])
 async def get_mentors(
     tech_stack: Optional[str] = Query(None, description="Filter by tech stack"),
+    skill: Optional[str] = Query(None, description="Filter by skill (alias for tech_stack)"),
     search: Optional[str] = Query(None, description="Search by name"),
     sort_by: Optional[str] = Query("name", description="Sort by field (name, tech_stack)"),
     current_user: User = Depends(get_current_user),
@@ -37,12 +38,27 @@ async def get_mentors(
     query = db.query(User).filter(User.role == "mentor")
     
     # Apply filters
-    if tech_stack:
-        # Filter mentors who have the specified tech_stack
-        query = query.filter(
-            User.tech_stack.isnot(None),
-            User.tech_stack.like(f'%"{tech_stack}"%')
-        )
+    filter_skill = tech_stack or skill  # Use tech_stack or skill parameter
+    if filter_skill:
+        # Filter mentors who have the specified tech_stack/skill
+        # First, get all mentors with tech_stack
+        mentors_with_tech = query.filter(User.tech_stack.isnot(None)).all()
+        filtered_mentors = []
+        for mentor in mentors_with_tech:
+            try:
+                tech_list = json.loads(mentor.tech_stack) if mentor.tech_stack else []
+                if filter_skill in tech_list:
+                    filtered_mentors.append(mentor)
+            except json.JSONDecodeError:
+                continue
+        
+        # If no mentors found with the skill, return empty list
+        if not filtered_mentors:
+            return []
+        
+        # Convert to query with specific IDs
+        mentor_ids = [m.id for m in filtered_mentors]
+        query = query.filter(User.id.in_(mentor_ids))
     
     if search:
         query = query.filter(User.name.like(f'%{search}%'))
@@ -69,6 +85,7 @@ async def get_mentors(
         
         # Create profile data for tests that expect it
         profile_data = {
+            "name": mentor.name,
             "bio": mentor.bio,
             "tech_stack": tech_stack_list,
             "profile_image_url": profile_image_url

@@ -15,13 +15,6 @@ async def create_matching_request(
     db: Session = Depends(get_db)
 ):
     """Create a new matching request (mentee to mentor)"""
-    # Validate required fields manually to return 400 instead of 422
-    if not hasattr(request_data, 'mentor_id') or request_data.mentor_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Mentor ID is required"
-        )
-    
     # Only mentees can create matching requests
     if current_user.role != "mentee":
         raise HTTPException(
@@ -252,3 +245,56 @@ async def delete_matching_request(
     db.commit()
     
     return {"message": "Matching request deleted successfully"}
+
+@router.post("/matching-requests/{request_id}/accept")
+async def accept_matching_request(
+    request_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Accept a matching request (mentor accepts)"""
+    # Only mentors can accept requests
+    if current_user.role != "mentor":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only mentors can accept matching requests"
+        )
+    
+    # Find the request
+    matching_request = db.query(MatchingRequest).filter(
+        MatchingRequest.id == request_id,
+        MatchingRequest.mentor_id == current_user.id
+    ).first()
+    
+    if not matching_request:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Matching request not found"
+        )
+    
+    # Check if mentor already has an accepted request
+    existing_accepted = db.query(MatchingRequest).filter(
+        MatchingRequest.mentor_id == current_user.id,
+        MatchingRequest.status == "accepted"
+    ).first()
+    
+    if existing_accepted:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You can only have one accepted matching request at a time"
+        )
+    
+    # Accept the request
+    matching_request.status = "accepted"
+    db.commit()
+    db.refresh(matching_request)
+    
+    return MatchingRequestResponse(
+        id=matching_request.id,
+        mentee_id=matching_request.mentee_id,
+        mentor_id=matching_request.mentor_id,
+        message=matching_request.message,
+        status=matching_request.status,
+        created_at=matching_request.created_at,
+        updated_at=matching_request.updated_at
+    )

@@ -37,6 +37,7 @@ async def get_current_user_profile(
     
     # Create profile data for tests that expect it
     profile_data = {
+        "name": current_user.name,
         "bio": current_user.bio,
         "tech_stack": tech_stack,
         "profile_image_url": profile_image_url
