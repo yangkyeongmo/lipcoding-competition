@@ -3,6 +3,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Server process files
+server.log
+server.pid
+nohup.out
+
 # C extensions
 *.so
 

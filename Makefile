@@ -1,4 +1,43 @@
-.PHONY: install test test-headed test-debug test-ui setup clean
+.PHONY: install test test-headed test-debug test-ui setup clean start-servers stop-servers status-servers logs-backend logs-frontend check-deps
+
+# Check if dependencies are installed
+check-deps:
+	@echo "Checking dependencies..."
+	@echo "=== Backend Dependencies ==="
+	@cd backend && python -c "import fastapi, uvicorn, sqlalchemy" 2>/dev/null && echo "✓ Backend dependencies OK" || echo "✗ Backend dependencies missing - run: cd backend && make install"
+	@echo "=== Frontend Dependencies ==="
+	@cd frontend && [ -d node_modules ] && echo "✓ Frontend dependencies OK" || echo "✗ Frontend dependencies missing - run: cd frontend && make install"
+	@echo "=== E2E Test Dependencies ==="
+	@[ -d node_modules ] && echo "✓ E2E test dependencies OK" || echo "✗ E2E test dependencies missing - run: make install"
+
+# Server management commands
+start-servers:
+	@echo "Starting backend server..."
+	cd backend && make install && make run-bg
+	@echo "Starting frontend server..."
+	cd frontend && make install && make run-bg
+	@echo "Both servers started in background"
+	@echo "Backend: http://localhost:8080"
+	@echo "Frontend: http://localhost:3000"
+
+stop-servers:
+	@echo "Stopping backend server..."
+	cd backend && make stop
+	@echo "Stopping frontend server..."
+	cd frontend && make stop
+	@echo "Both servers stopped"
+
+status-servers:
+	@echo "=== Backend Status ==="
+	cd backend && make status
+	@echo "=== Frontend Status ==="
+	cd frontend && make status
+
+logs-backend:
+	cd backend && make logs
+
+logs-frontend:
+	cd frontend && make logs
 
 # Install Playwright and dependencies
 install:
@@ -43,9 +82,16 @@ test-integration:
 # Setup test environment
 setup: install
 	@echo "Setting up E2E test environment..."
-	@echo "Make sure both backend and frontend servers are running:"
-	@echo "Backend: cd backend && make run"
-	@echo "Frontend: cd frontend && npm start"
+	@echo ""
+	@echo "To start both servers in background:"
+	@echo "  make start-servers"
+	@echo ""
+	@echo "Or start servers individually:"
+	@echo "  Backend: cd backend && make run-bg"
+	@echo "  Frontend: cd frontend && make run-bg"
+	@echo ""
+	@echo "Check server status:"
+	@echo "  make status-servers"
 
 # Generate test report
 report:
@@ -77,6 +123,16 @@ test-retry:
 # Help
 help:
 	@echo "Available commands:"
+	@echo ""
+	@echo "Server Management:"
+	@echo "  check-deps    - Check if all dependencies are installed"
+	@echo "  start-servers - Start both backend and frontend servers in background"
+	@echo "  stop-servers  - Stop both servers"
+	@echo "  status-servers - Check status of both servers"
+	@echo "  logs-backend  - View backend server logs"
+	@echo "  logs-frontend - View frontend server logs"
+	@echo ""
+	@echo "Testing:"
 	@echo "  install       - Install Playwright and dependencies"
 	@echo "  test          - Run all E2E tests"
 	@echo "  test-headed   - Run tests with browser UI"
@@ -88,6 +144,8 @@ help:
 	@echo "  test-mentee   - Run mentee feature tests"
 	@echo "  test-ui-ux    - Run UI/UX tests"
 	@echo "  test-integration - Run full integration tests"
+	@echo ""
+	@echo "Setup & Maintenance:"
 	@echo "  setup         - Setup test environment"
 	@echo "  report        - Show test report"
 	@echo "  clean         - Clean test artifacts"
