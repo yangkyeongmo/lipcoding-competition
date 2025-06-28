@@ -65,7 +65,8 @@ async def update_current_user_profile(
     # Check if at least one field is provided for update
     if (profile_update.name is None and 
         profile_update.bio is None and 
-        profile_update.tech_stack is None):
+        profile_update.tech_stack is None and
+        profile_update.role is None):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="At least one field must be provided for update"
@@ -77,6 +78,13 @@ async def update_current_user_profile(
     
     if profile_update.bio is not None:
         current_user.bio = profile_update.bio
+    
+    # Role changes are not allowed
+    if profile_update.role is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Role cannot be changed"
+        )
     
     if profile_update.tech_stack is not None:
         # Only mentors can have tech stack
@@ -201,7 +209,8 @@ async def update_current_user_profile_alias(
     # Check if at least one field is provided for update
     if (profile_update.name is None and 
         profile_update.bio is None and 
-        profile_update.tech_stack is None):
+        profile_update.tech_stack is None and
+        profile_update.role is None):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="At least one field must be provided for update"
@@ -213,6 +222,13 @@ async def update_current_user_profile_alias(
     
     if profile_update.bio is not None:
         current_user.bio = profile_update.bio
+    
+    # Role changes are not allowed
+    if profile_update.role is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Role cannot be changed"
+        )
     
     if profile_update.tech_stack is not None:
         # Only mentors can have tech stack

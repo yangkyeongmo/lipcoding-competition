@@ -42,6 +42,7 @@ class UserProfileUpdate(BaseModel):
     name: Optional[str] = None
     bio: Optional[str] = None
     tech_stack: Optional[List[str]] = None
+    role: Optional[str] = None  # Add role for validation purposes
 
 # Mentor schemas
 class MentorListItem(BaseModel):

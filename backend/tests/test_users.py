@@ -39,7 +39,7 @@ class TestUserProfile:
     def test_get_current_user_unauthorized(self, client):
         """Test getting current user without authentication"""
         response = client.get("/api/me")
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_get_me_without_token_should_return_401(self, client):
         """Test getting current user without token should return 401 (C# test expectation)"""
