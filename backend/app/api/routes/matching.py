@@ -15,6 +15,13 @@ async def create_matching_request(
     db: Session = Depends(get_db)
 ):
     """Create a new matching request (mentee to mentor)"""
+    # Validate required fields manually to return 400 instead of 422
+    if not hasattr(request_data, 'mentor_id') or request_data.mentor_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Mentor ID is required"
+        )
+    
     # Only mentees can create matching requests
     if current_user.role != "mentee":
         raise HTTPException(

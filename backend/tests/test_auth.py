@@ -40,7 +40,8 @@ class TestAuthentication:
             # Missing name and role
         }
         response = client.post("/api/signup", json=user_data)
-        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        # App converts 422 to 400 via exception handler
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_signup_with_invalid_email_should_return_400(self, client):
         """Test signup with invalid email should return 400"""
@@ -51,8 +52,8 @@ class TestAuthentication:
             "role": "mentor"
         }
         response = client.post("/api/signup", json=user_data)
-        # Should return 422 for validation error, but test expects 400
-        assert response.status_code in [status.HTTP_400_BAD_REQUEST, status.HTTP_422_UNPROCESSABLE_ENTITY]
+        # App converts validation errors to 400
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_signup_with_missing_required_fields_should_return_400(self, client):
         """Test signup with missing required fields should return 400"""
@@ -63,8 +64,8 @@ class TestAuthentication:
             # Missing email
         }
         response = client.post("/api/signup", json=user_data)
-        # Should return 422 for validation error, but test expects 400
-        assert response.status_code in [status.HTTP_400_BAD_REQUEST, status.HTTP_422_UNPROCESSABLE_ENTITY]
+        # App converts validation errors to 400
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
     
     def test_login_success(self, client, test_user_mentee):
         """Test successful login"""
@@ -116,7 +117,8 @@ class TestAuthentication:
             # Missing password
         }
         response = client.post("/api/login", json=login_data)
-        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        # App converts 422 to 400 via exception handler
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_login_with_missing_fields_should_return_401(self, client):
         """Test login with missing fields should return 401 (based on C# test expectation)"""
@@ -125,8 +127,8 @@ class TestAuthentication:
             # Missing email
         }
         response = client.post("/api/login", json=login_data)
-        # Test expects 401, but validation error gives 422
-        assert response.status_code in [status.HTTP_401_UNAUTHORIZED, status.HTTP_422_UNPROCESSABLE_ENTITY]
+        # Test expects 401, but validation error gets converted to 400
+        assert response.status_code in [status.HTTP_401_UNAUTHORIZED, status.HTTP_400_BAD_REQUEST]
 
     def test_protected_endpoint_without_authorization_header_should_return_401(self, client):
         """Test protected endpoint without authorization header should return 401"""

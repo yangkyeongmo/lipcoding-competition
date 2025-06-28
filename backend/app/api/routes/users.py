@@ -5,7 +5,7 @@ import json
 import base64
 
 from app.database import get_db, User
-from app.schemas import UserProfile, UserProfileUpdate, UserProfileData
+from app.schemas import UserProfile, UserProfileUpdate
 from app.core.auth import get_current_user
 
 router = APIRouter()
@@ -62,6 +62,15 @@ async def update_current_user_profile(
     db: Session = Depends(get_db)
 ):
     """Update current user profile"""
+    # Check if at least one field is provided for update
+    if (profile_update.name is None and 
+        profile_update.bio is None and 
+        profile_update.tech_stack is None):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="At least one field must be provided for update"
+        )
+    
     # Update fields if provided
     if profile_update.name is not None:
         current_user.name = profile_update.name
@@ -189,6 +198,15 @@ async def update_current_user_profile_alias(
     db: Session = Depends(get_db)
 ):
     """Update current user profile (alias endpoint)"""
+    # Check if at least one field is provided for update
+    if (profile_update.name is None and 
+        profile_update.bio is None and 
+        profile_update.tech_stack is None):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="At least one field must be provided for update"
+        )
+    
     # Update fields if provided
     if profile_update.name is not None:
         current_user.name = profile_update.name

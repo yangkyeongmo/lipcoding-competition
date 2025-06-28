@@ -21,6 +21,28 @@ async def signup(
     db: Session = Depends(get_db)
 ):
     """Register a new user"""
+    # Validate required fields manually to return 400 instead of 422
+    if not hasattr(signup_data, 'email') or not signup_data.email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email is required"
+        )
+    if not hasattr(signup_data, 'password') or not signup_data.password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password is required"
+        )
+    if not hasattr(signup_data, 'name') or not signup_data.name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Name is required"
+        )
+    if not hasattr(signup_data, 'role') or not signup_data.role:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Role is required"
+        )
+    
     # Validate email format
     if not validate_email(signup_data.email):
         raise HTTPException(
@@ -64,6 +86,18 @@ async def login(
     db: Session = Depends(get_db)
 ):
     """Authenticate user and return JWT token"""
+    # Validate required fields manually to return 400 instead of 422
+    if not hasattr(login_data, 'email') or not login_data.email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email is required"
+        )
+    if not hasattr(login_data, 'password') or not login_data.password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password is required"
+        )
+    
     user = authenticate_user(db, login_data.email, login_data.password)
     if not user:
         raise HTTPException(
