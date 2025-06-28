@@ -37,7 +37,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     # Convert 422 validation errors to 400 bad request for better API compatibility
     return JSONResponse(
         status_code=400,
-        content={"detail": "Invalid request data"}
+        content={"error": "Invalid request data"}
     )
 
 # Create uploads directory if it doesn't exist

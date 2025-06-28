@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.database import get_db, User, MatchingRequest
-from app.schemas import MatchingRequestCreate, MatchingRequestResponse, MatchingRequestUpdate
+from app.schemas import MatchingRequestCreate, MatchingRequestResponse, MatchingRequestUpdate, MatchingRequestOutgoing
 from app.core.auth import get_current_user
 
 router = APIRouter()
@@ -30,11 +30,11 @@ async def create_matching_request(
             detail="Mentor not found"
         )
     
-    # Validate that menteeId matches current user (if provided)
-    if hasattr(request_data, 'menteeId') and request_data.menteeId != current_user.id:
+    # Validate that menteeId matches current user
+    if request_data.menteeId != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="menteeId must match current authenticated user"
+            detail={"error": "menteeId must match current authenticated user"}
         )
     
     # Check if mentee already sent a request to this mentor
@@ -46,7 +46,7 @@ async def create_matching_request(
     if existing_mentor_request:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You have already sent a request to this mentor"
+            detail={"error": "You have already sent a request to this mentor"}
         )
     
     # Create matching request
@@ -184,7 +184,7 @@ async def get_incoming_matching_requests(
         for req in requests
     ]
 
-@router.get("/match-requests/outgoing", response_model=List[MatchingRequestResponse])
+@router.get("/match-requests/outgoing", response_model=List[MatchingRequestOutgoing])
 async def get_outgoing_matching_requests(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -193,7 +193,7 @@ async def get_outgoing_matching_requests(
     if current_user.role != "mentee":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only mentees can view outgoing requests"
+            detail={"error": "Only mentees can view outgoing requests"}
         )
     
     requests = db.query(MatchingRequest).filter(
@@ -201,11 +201,10 @@ async def get_outgoing_matching_requests(
     ).order_by(MatchingRequest.created_at.desc()).all()
     
     return [
-        MatchingRequestResponse(
+        MatchingRequestOutgoing(
             id=req.id,
             menteeId=req.mentee_id,
             mentorId=req.mentor_id,
-            message=req.message,
             status=req.status
         )
         for req in requests

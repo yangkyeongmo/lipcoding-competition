@@ -57,7 +57,7 @@ async def update_current_user_profile(
         profile_update.role is None):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="At least one field must be provided for update"
+            detail={"error": "At least one field must be provided for update"}
         )
     
     # Update fields if provided
@@ -71,7 +71,7 @@ async def update_current_user_profile(
     if profile_update.role is not None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Role cannot be changed"
+            detail={"error": "Role cannot be changed"}
         )
     
     if profile_update.skills is not None:
@@ -81,7 +81,7 @@ async def update_current_user_profile(
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Only mentors can have skills"
+                detail={"error": "Only mentors can have skills"}
             )
     
     # Handle base64 image upload

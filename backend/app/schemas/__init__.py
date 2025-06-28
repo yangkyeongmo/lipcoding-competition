@@ -39,6 +39,23 @@ class UserProfileUpdate(BaseModel):
     skills: Optional[List[str]] = None  # Changed from tech_stack to skills
     role: Optional[str] = None
 
+class UpdateMentorProfileRequest(BaseModel):
+    """Mentor profile update request per OpenAPI spec"""
+    id: int
+    name: str
+    role: str
+    bio: str
+    image: str  # Base64 encoded image string
+    skills: List[str]
+
+class UpdateMenteeProfileRequest(BaseModel):
+    """Mentee profile update request per OpenAPI spec"""
+    id: int
+    name: str
+    role: str
+    bio: str
+    image: str  # Base64 encoded image string
+
 # Mentor schemas
 class MentorListItem(BaseModel):
     id: int
@@ -53,7 +70,7 @@ class MentorListItem(BaseModel):
 class MatchingRequestCreate(BaseModel):
     mentorId: int  # Changed from mentor_id to mentorId per API spec
     menteeId: int  # Add menteeId field per API spec
-    message: Optional[str] = None
+    message: str  # Required per API spec
 
 class MatchingRequestResponse(BaseModel):
     id: int
@@ -65,9 +82,20 @@ class MatchingRequestResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class MatchingRequestOutgoing(BaseModel):
+    """Outgoing match requests (no message field per API spec)"""
+    id: int
+    mentorId: int
+    menteeId: int
+    status: str
+
+    class Config:
+        from_attributes = True
+
 class MatchingRequestUpdate(BaseModel):
     status: str  # "accepted" or "rejected"
 
 # Error schema
 class ErrorResponse(BaseModel):
-    detail: str
+    error: str
+    details: Optional[str] = None

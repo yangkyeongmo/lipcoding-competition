@@ -25,29 +25,29 @@ async def signup(
     if not hasattr(signup_data, 'email') or not signup_data.email:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email is required"
+            detail={"error": "Email is required"}
         )
     if not hasattr(signup_data, 'password') or not signup_data.password:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Password is required"
+            detail={"error": "Password is required"}
         )
     if not hasattr(signup_data, 'name') or not signup_data.name:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Name is required"
+            detail={"error": "Name is required"}
         )
     if not hasattr(signup_data, 'role') or not signup_data.role:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Role is required"
+            detail={"error": "Role is required"}
         )
     
     # Validate email format
     if not validate_email(signup_data.email):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid email format"
+            detail={"error": "Invalid email format"}
         )
     
     # Check if user already exists
@@ -55,14 +55,14 @@ async def signup(
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
+            detail={"error": "Email already registered"}
         )
     
     # Validate role
     if signup_data.role not in ["mentor", "mentee"]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Role must be either 'mentor' or 'mentee'"
+            detail={"error": "Role must be either 'mentor' or 'mentee'"}
         )
     
     # Create new user
@@ -90,19 +90,19 @@ async def login(
     if not hasattr(login_data, 'email') or not login_data.email:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email is required"
+            detail={"error": "Email is required"}
         )
     if not hasattr(login_data, 'password') or not login_data.password:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Password is required"
+            detail={"error": "Password is required"}
         )
     
     user = authenticate_user(db, login_data.email, login_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password"
+            detail={"error": "Incorrect email or password"}
         )
     
     # Create JWT token with required claims
