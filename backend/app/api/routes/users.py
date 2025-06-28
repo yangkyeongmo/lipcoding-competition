@@ -5,7 +5,7 @@ import json
 import base64
 
 from app.database import get_db, User
-from app.schemas import UserProfile, UserProfileUpdate
+from app.schemas import UserProfile, UserProfileUpdate, UserProfileData
 from app.core.auth import get_current_user
 
 router = APIRouter()
@@ -35,6 +35,13 @@ async def get_current_user_profile(
     
     profile_image_url = get_profile_image_url(current_user)
     
+    # Create profile data for tests that expect it
+    profile_data = {
+        "bio": current_user.bio,
+        "tech_stack": tech_stack,
+        "profile_image_url": profile_image_url
+    }
+    
     return UserProfile(
         id=current_user.id,
         email=current_user.email,
@@ -43,6 +50,7 @@ async def get_current_user_profile(
         bio=current_user.bio,
         tech_stack=tech_stack,
         profile_image_url=profile_image_url,
+        profile=profile_data,
         created_at=current_user.created_at,
         updated_at=current_user.updated_at
     )
@@ -84,6 +92,13 @@ async def update_current_user_profile(
     
     profile_image_url = get_profile_image_url(current_user)
     
+    # Create profile data for tests that expect it
+    profile_data = {
+        "bio": current_user.bio,
+        "tech_stack": tech_stack,
+        "profile_image_url": profile_image_url
+    }
+    
     return UserProfile(
         id=current_user.id,
         email=current_user.email,
@@ -92,6 +107,7 @@ async def update_current_user_profile(
         bio=current_user.bio,
         tech_stack=tech_stack,
         profile_image_url=profile_image_url,
+        profile=profile_data,
         created_at=current_user.created_at,
         updated_at=current_user.updated_at
     )
@@ -143,6 +159,13 @@ async def get_current_user_profile_alias(
     
     profile_image_url = get_profile_image_url(current_user)
     
+    # Create profile data for tests that expect it
+    profile_data = {
+        "bio": current_user.bio,
+        "tech_stack": tech_stack,
+        "profile_image_url": profile_image_url
+    }
+    
     # Return user data with profile field for test compatibility
     user_data = UserProfile(
         id=current_user.id,
@@ -152,6 +175,7 @@ async def get_current_user_profile_alias(
         bio=current_user.bio,
         tech_stack=tech_stack,
         profile_image_url=profile_image_url,
+        profile=profile_data,
         created_at=current_user.created_at,
         updated_at=current_user.updated_at
     )
@@ -195,6 +219,13 @@ async def update_current_user_profile_alias(
     
     profile_image_url = get_profile_image_url(current_user)
     
+    # Create profile data for tests that expect it
+    profile_data = {
+        "bio": current_user.bio,
+        "tech_stack": tech_stack,
+        "profile_image_url": profile_image_url
+    }
+    
     return UserProfile(
         id=current_user.id,
         email=current_user.email,
@@ -203,6 +234,7 @@ async def update_current_user_profile_alias(
         bio=current_user.bio,
         tech_stack=tech_stack,
         profile_image_url=profile_image_url,
+        profile=profile_data,
         created_at=current_user.created_at,
         updated_at=current_user.updated_at
     )

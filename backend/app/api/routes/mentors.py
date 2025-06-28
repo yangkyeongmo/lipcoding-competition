@@ -38,7 +38,11 @@ async def get_mentors(
     
     # Apply filters
     if tech_stack:
-        query = query.filter(User.tech_stack.like(f'%"{tech_stack}"%'))
+        # Filter mentors who have the specified tech_stack
+        query = query.filter(
+            User.tech_stack.isnot(None),
+            User.tech_stack.like(f'%"{tech_stack}"%')
+        )
     
     if search:
         query = query.filter(User.name.like(f'%{search}%'))
@@ -63,13 +67,21 @@ async def get_mentors(
         
         profile_image_url = get_profile_image_url(mentor)
         
+        # Create profile data for tests that expect it
+        profile_data = {
+            "bio": mentor.bio,
+            "tech_stack": tech_stack_list,
+            "profile_image_url": profile_image_url
+        }
+        
         mentor_list.append(MentorListItem(
             id=mentor.id,
             name=mentor.name,
             role=mentor.role,
             bio=mentor.bio,
             tech_stack=tech_stack_list,
-            profile_image_url=profile_image_url
+            profile_image_url=profile_image_url,
+            profile=profile_data
         ))
     
     return mentor_list
@@ -104,11 +116,19 @@ async def get_mentor_by_id(
     
     profile_image_url = get_profile_image_url(mentor)
     
+    # Create profile data for tests that expect it
+    profile_data = {
+        "bio": mentor.bio,
+        "tech_stack": tech_stack_list,
+        "profile_image_url": profile_image_url
+    }
+    
     return MentorListItem(
         id=mentor.id,
         name=mentor.name,
         role=mentor.role,
         bio=mentor.bio,
         tech_stack=tech_stack_list,
-        profile_image_url=profile_image_url
+        profile_image_url=profile_image_url,
+        profile=profile_data
     )

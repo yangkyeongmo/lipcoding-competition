@@ -16,7 +16,13 @@ class LoginRequest(BaseModel):
 class LoginResponse(BaseModel):
     token: str
 
-# User schemas
+# User schemas  
+class UserProfileData(BaseModel):
+    """Profile data nested within user response"""
+    bio: Optional[str] = None
+    tech_stack: Optional[List[str]] = None
+    profile_image_url: Optional[str] = None
+
 class UserProfile(BaseModel):
     id: int
     email: str
@@ -25,6 +31,7 @@ class UserProfile(BaseModel):
     bio: Optional[str] = None
     tech_stack: Optional[List[str]] = None
     profile_image_url: Optional[str] = None
+    profile: Optional[UserProfileData] = None  # For backward compatibility with tests
     created_at: datetime
     updated_at: datetime
 
@@ -44,6 +51,7 @@ class MentorListItem(BaseModel):
     bio: Optional[str] = None
     tech_stack: Optional[List[str]] = None
     profile_image_url: Optional[str] = None
+    profile: Optional[UserProfileData] = None  # For backward compatibility with tests
 
     class Config:
         from_attributes = True

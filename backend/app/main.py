@@ -1,7 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.exceptions import RequestValidationError
 import os
 
 from app.core.config import settings
@@ -28,6 +29,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Exception handler to convert 422 validation errors to 400 bad request
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    from fastapi.responses import JSONResponse
+    # Convert 422 validation errors to 400 bad request for better API compatibility
+    return JSONResponse(
+        status_code=400,
+        content={"detail": "Invalid request data"}
+    )
 
 # Create uploads directory if it doesn't exist
 os.makedirs("uploads", exist_ok=True)

@@ -1,0 +1,22 @@
+[project]
+name = "mentor-mentee-app"
+description = "Mentor-Mentee Matching Application Backend"
+requires-python = ">=3.13"
+dynamic = ["version"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.black]
+line-length = 88
+target-version = ['py313']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88

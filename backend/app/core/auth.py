@@ -13,7 +13,7 @@ from app.database import get_db, User
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # JWT token scheme
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)  # Don't auto-error on missing auth
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a plain password against a hashed password"""
@@ -62,7 +62,7 @@ def verify_token(token: str) -> Optional[dict]:
         return None
 
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: Session = Depends(get_db)
 ) -> User:
     """Get current authenticated user"""
@@ -71,6 +71,10 @@ def get_current_user(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    
+    # Check if credentials are provided
+    if credentials is None:
+        raise credentials_exception
     
     try:
         payload = verify_token(credentials.credentials)
