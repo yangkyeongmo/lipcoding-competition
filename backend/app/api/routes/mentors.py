@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import json
-import base64
 
 from app.database import get_db, User
 from app.schemas import MentorListItem
@@ -10,12 +9,9 @@ from app.core.auth import get_current_user
 
 router = APIRouter()
 
-def get_profile_image_url(user: User) -> Optional[str]:
+def get_profile_image_url(user: User) -> str:
     """Get profile image URL for user"""
-    if user.profile_image:
-        return f"data:image/{user.profile_image_filename.split('.')[-1]};base64,{base64.b64encode(user.profile_image).decode()}"
-    else:
-        return "https://placehold.co/500x500.jpg?text=MENTOR"
+    return f"/images/{user.role}/{user.id}"
 
 @router.get("/mentors", response_model=List[MentorListItem])
 async def get_mentors(
@@ -83,21 +79,18 @@ async def get_mentors(
         
         profile_image_url = get_profile_image_url(mentor)
         
-        # Create profile data for tests that expect it
+        # Create profile data according to API spec
         profile_data = {
             "name": mentor.name,
             "bio": mentor.bio,
-            "tech_stack": tech_stack_list,
-            "profile_image_url": profile_image_url
+            "imageUrl": profile_image_url,
+            "skills": tech_stack_list
         }
         
         mentor_list.append(MentorListItem(
             id=mentor.id,
-            name=mentor.name,
+            email=mentor.email,
             role=mentor.role,
-            bio=mentor.bio,
-            tech_stack=tech_stack_list,
-            profile_image_url=profile_image_url,
             profile=profile_data
         ))
     
@@ -133,19 +126,17 @@ async def get_mentor_by_id(
     
     profile_image_url = get_profile_image_url(mentor)
     
-    # Create profile data for tests that expect it
+    # Create profile data according to API spec
     profile_data = {
+        "name": mentor.name,
         "bio": mentor.bio,
-        "tech_stack": tech_stack_list,
-        "profile_image_url": profile_image_url
+        "imageUrl": profile_image_url,
+        "skills": tech_stack_list
     }
     
     return MentorListItem(
         id=mentor.id,
-        name=mentor.name,
+        email=mentor.email,
         role=mentor.role,
-        bio=mentor.bio,
-        tech_stack=tech_stack_list,
-        profile_image_url=profile_image_url,
         profile=profile_data
     )

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Response
 from sqlalchemy.orm import Session
 import json
 import base64
@@ -42,7 +42,7 @@ async def get_current_user_profile(
         profile=profile_data
     )
 
-@router.put("/me", response_model=UserProfile)
+@router.put("/profile", response_model=UserProfile)
 async def update_current_user_profile(
     profile_update: UserProfileUpdate,
     current_user: User = Depends(get_current_user),
@@ -52,7 +52,8 @@ async def update_current_user_profile(
     # Check if at least one field is provided for update
     if (profile_update.name is None and 
         profile_update.bio is None and 
-        profile_update.tech_stack is None and
+        profile_update.skills is None and
+        profile_update.image is None and
         profile_update.role is None):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -73,47 +74,55 @@ async def update_current_user_profile(
             detail="Role cannot be changed"
         )
     
-    if profile_update.tech_stack is not None:
-        # Only mentors can have tech stack
+    if profile_update.skills is not None:
+        # Only mentors can have skills
         if current_user.role == "mentor":
-            current_user.tech_stack = json.dumps(profile_update.tech_stack)
+            current_user.tech_stack = json.dumps(profile_update.skills)
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Only mentors can have tech stack"
+                detail="Only mentors can have skills"
+            )
+    
+    # Handle base64 image upload
+    if profile_update.image is not None:
+        try:
+            # Decode base64 image
+            image_data = base64.b64decode(profile_update.image)
+            current_user.profile_image = image_data
+            current_user.profile_image_filename = "profile.jpg"  # Default filename
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid base64 image data"
             )
     
     db.commit()
     db.refresh(current_user)
     
     # Return updated profile
-    tech_stack = None
+    skills = None
     if current_user.tech_stack:
         try:
-            tech_stack = json.loads(current_user.tech_stack)
+            skills = json.loads(current_user.tech_stack)
         except json.JSONDecodeError:
-            tech_stack = []
+            skills = []
     
     profile_image_url = get_profile_image_url(current_user)
     
-    # Create profile data for tests that expect it
+    # Create profile data according to API spec
     profile_data = {
+        "name": current_user.name,
         "bio": current_user.bio,
-        "tech_stack": tech_stack,
-        "profile_image_url": profile_image_url
+        "imageUrl": profile_image_url,
+        "skills": skills
     }
     
     return UserProfile(
         id=current_user.id,
         email=current_user.email,
-        name=current_user.name,
         role=current_user.role,
-        bio=current_user.bio,
-        tech_stack=tech_stack,
-        profile_image_url=profile_image_url,
-        profile=profile_data,
-        created_at=current_user.created_at,
-        updated_at=current_user.updated_at
+        profile=profile_data
     )
 
 @router.post("/me/profile-image")
@@ -147,6 +156,39 @@ async def upload_profile_image(
     db.commit()
     
     return {"message": "Profile image uploaded successfully"}
+
+@router.get("/images/{role}/{user_id}")
+async def get_profile_image(
+    role: str,
+    user_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get profile image"""
+    # Validate role
+    if role not in ["mentor", "mentee"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Role must be either 'mentor' or 'mentee'"
+        )
+    
+    # Get user
+    user = db.query(User).filter(User.id == user_id, User.role == role).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Return image data
+    if user.profile_image:
+        return Response(content=user.profile_image, media_type="image/jpeg")
+    else:
+        # Return a default placeholder or 404
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Profile image not found"
+        )
 
 # Alias endpoint for tests that expect /users/me/profile instead of /me
 @router.get("/users/me/profile", response_model=UserProfile)

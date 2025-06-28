@@ -8,7 +8,7 @@ from app.core.auth import get_current_user
 
 router = APIRouter()
 
-@router.post("/matching-requests", response_model=MatchingRequestResponse)
+@router.post("/match-requests", response_model=MatchingRequestResponse)
 async def create_matching_request(
     request_data: MatchingRequestCreate,
     current_user: User = Depends(get_current_user),
@@ -23,17 +23,24 @@ async def create_matching_request(
         )
     
     # Check if mentor exists
-    mentor = db.query(User).filter(User.id == request_data.mentor_id, User.role == "mentor").first()
+    mentor = db.query(User).filter(User.id == request_data.mentorId, User.role == "mentor").first()
     if not mentor:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Mentor not found"
         )
     
+    # Validate that menteeId matches current user (if provided)
+    if hasattr(request_data, 'menteeId') and request_data.menteeId != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="menteeId must match current authenticated user"
+        )
+    
     # Check if mentee already sent a request to this mentor
     existing_mentor_request = db.query(MatchingRequest).filter(
         MatchingRequest.mentee_id == current_user.id,
-        MatchingRequest.mentor_id == request_data.mentor_id
+        MatchingRequest.mentor_id == request_data.mentorId
     ).first()
     
     if existing_mentor_request:
@@ -45,7 +52,7 @@ async def create_matching_request(
     # Create matching request
     matching_request = MatchingRequest(
         mentee_id=current_user.id,
-        mentor_id=request_data.mentor_id,
+        mentor_id=request_data.mentorId,
         message=request_data.message,
         status="pending"
     )
@@ -56,15 +63,13 @@ async def create_matching_request(
     
     return MatchingRequestResponse(
         id=matching_request.id,
-        mentee_id=matching_request.mentee_id,
-        mentor_id=matching_request.mentor_id,
+        menteeId=matching_request.mentee_id,
+        mentorId=matching_request.mentor_id,
         message=matching_request.message,
-        status=matching_request.status,
-        created_at=matching_request.created_at,
-        updated_at=matching_request.updated_at
+        status=matching_request.status
     )
 
-@router.get("/matching-requests", response_model=List[MatchingRequestResponse])
+@router.get("/match-requests", response_model=List[MatchingRequestResponse])
 async def get_matching_requests(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -84,12 +89,10 @@ async def get_matching_requests(
     return [
         MatchingRequestResponse(
             id=req.id,
-            mentee_id=req.mentee_id,
-            mentor_id=req.mentor_id,
+            menteeId=req.mentee_id,
+            mentorId=req.mentor_id,
             message=req.message,
-            status=req.status,
-            created_at=req.created_at,
-            updated_at=req.updated_at
+            status=req.status
         )
         for req in requests
     ]
