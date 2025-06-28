@@ -97,7 +97,7 @@ async def get_matching_requests(
         for req in requests
     ]
 
-@router.put("/matching-requests/{request_id}", response_model=MatchingRequestResponse)
+@router.put("/match-requests/{request_id}", response_model=MatchingRequestResponse)
 async def update_matching_request(
     request_id: int,
     request_update: MatchingRequestUpdate,
@@ -151,15 +151,13 @@ async def update_matching_request(
     
     return MatchingRequestResponse(
         id=matching_request.id,
-        mentee_id=matching_request.mentee_id,
-        mentor_id=matching_request.mentor_id,
+        menteeId=matching_request.mentee_id,
+        mentorId=matching_request.mentor_id,
         message=matching_request.message,
-        status=matching_request.status,
-        created_at=matching_request.created_at,
-        updated_at=matching_request.updated_at
+        status=matching_request.status
     )
 
-@router.get("/matching-requests/incoming", response_model=List[MatchingRequestResponse])
+@router.get("/match-requests/incoming", response_model=List[MatchingRequestResponse])
 async def get_incoming_matching_requests(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -178,17 +176,15 @@ async def get_incoming_matching_requests(
     return [
         MatchingRequestResponse(
             id=req.id,
-            mentee_id=req.mentee_id,
-            mentor_id=req.mentor_id,
+            menteeId=req.mentee_id,
+            mentorId=req.mentor_id,
             message=req.message,
-            status=req.status,
-            created_at=req.created_at,
-            updated_at=req.updated_at
+            status=req.status
         )
         for req in requests
     ]
 
-@router.get("/matching-requests/outgoing", response_model=List[MatchingRequestResponse])
+@router.get("/match-requests/outgoing", response_model=List[MatchingRequestResponse])
 async def get_outgoing_matching_requests(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -207,17 +203,15 @@ async def get_outgoing_matching_requests(
     return [
         MatchingRequestResponse(
             id=req.id,
-            mentee_id=req.mentee_id,
-            mentor_id=req.mentor_id,
+            menteeId=req.mentee_id,
+            mentorId=req.mentor_id,
             message=req.message,
-            status=req.status,
-            created_at=req.created_at,
-            updated_at=req.updated_at
+            status=req.status
         )
         for req in requests
     ]
 
-@router.delete("/matching-requests/{request_id}")
+@router.delete("/match-requests/{request_id}")
 async def delete_matching_request(
     request_id: int,
     current_user: User = Depends(get_current_user),
@@ -243,13 +237,22 @@ async def delete_matching_request(
             detail="Matching request not found"
         )
     
+    # Return the cancelled request format per API spec
+    response = MatchingRequestResponse(
+        id=matching_request.id,
+        mentorId=matching_request.mentor_id,
+        menteeId=matching_request.mentee_id,
+        message=matching_request.message,
+        status="cancelled"
+    )
+    
     # Delete the request
     db.delete(matching_request)
     db.commit()
     
-    return {"message": "Matching request deleted successfully"}
+    return response
 
-@router.post("/matching-requests/{request_id}/accept")
+@router.put("/match-requests/{request_id}/accept", response_model=MatchingRequestResponse)
 async def accept_matching_request(
     request_id: int,
     current_user: User = Depends(get_current_user),
@@ -294,10 +297,47 @@ async def accept_matching_request(
     
     return MatchingRequestResponse(
         id=matching_request.id,
-        mentee_id=matching_request.mentee_id,
-        mentor_id=matching_request.mentor_id,
+        menteeId=matching_request.mentee_id,
+        mentorId=matching_request.mentor_id,
         message=matching_request.message,
-        status=matching_request.status,
-        created_at=matching_request.created_at,
-        updated_at=matching_request.updated_at
+        status=matching_request.status
+    )
+
+@router.put("/match-requests/{request_id}/reject", response_model=MatchingRequestResponse)
+async def reject_matching_request(
+    request_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Reject a matching request (mentor rejects)"""
+    # Only mentors can reject requests
+    if current_user.role != "mentor":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only mentors can reject matching requests"
+        )
+    
+    # Find the request
+    matching_request = db.query(MatchingRequest).filter(
+        MatchingRequest.id == request_id,
+        MatchingRequest.mentor_id == current_user.id
+    ).first()
+    
+    if not matching_request:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Matching request not found"
+        )
+    
+    # Reject the request
+    matching_request.status = "rejected"
+    db.commit()
+    db.refresh(matching_request)
+    
+    return MatchingRequestResponse(
+        id=matching_request.id,
+        menteeId=matching_request.mentee_id,
+        mentorId=matching_request.mentor_id,
+        message=matching_request.message,
+        status=matching_request.status
     )
