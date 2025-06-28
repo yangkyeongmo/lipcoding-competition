@@ -66,6 +66,7 @@ async def get_mentors(
         mentor_list.append(MentorListItem(
             id=mentor.id,
             name=mentor.name,
+            role=mentor.role,
             bio=mentor.bio,
             tech_stack=tech_stack_list,
             profile_image_url=profile_image_url
@@ -106,6 +107,7 @@ async def get_mentor_by_id(
     return MentorListItem(
         id=mentor.id,
         name=mentor.name,
+        role=mentor.role,
         bio=mentor.bio,
         tech_stack=tech_stack_list,
         profile_image_url=profile_image_url

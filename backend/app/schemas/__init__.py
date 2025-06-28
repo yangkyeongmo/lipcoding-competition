@@ -40,6 +40,7 @@ class UserProfileUpdate(BaseModel):
 class MentorListItem(BaseModel):
     id: int
     name: str
+    role: str
     bio: Optional[str] = None
     tech_stack: Optional[List[str]] = None
     profile_image_url: Optional[str] = None

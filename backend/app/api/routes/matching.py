@@ -156,6 +156,64 @@ async def update_matching_request(
         updated_at=matching_request.updated_at
     )
 
+@router.get("/matching-requests/incoming", response_model=List[MatchingRequestResponse])
+async def get_incoming_matching_requests(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get incoming matching requests (for mentors)"""
+    if current_user.role != "mentor":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only mentors can view incoming requests"
+        )
+    
+    requests = db.query(MatchingRequest).filter(
+        MatchingRequest.mentor_id == current_user.id
+    ).order_by(MatchingRequest.created_at.desc()).all()
+    
+    return [
+        MatchingRequestResponse(
+            id=req.id,
+            mentee_id=req.mentee_id,
+            mentor_id=req.mentor_id,
+            message=req.message,
+            status=req.status,
+            created_at=req.created_at,
+            updated_at=req.updated_at
+        )
+        for req in requests
+    ]
+
+@router.get("/matching-requests/outgoing", response_model=List[MatchingRequestResponse])
+async def get_outgoing_matching_requests(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get outgoing matching requests (for mentees)"""
+    if current_user.role != "mentee":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only mentees can view outgoing requests"
+        )
+    
+    requests = db.query(MatchingRequest).filter(
+        MatchingRequest.mentee_id == current_user.id
+    ).order_by(MatchingRequest.created_at.desc()).all()
+    
+    return [
+        MatchingRequestResponse(
+            id=req.id,
+            mentee_id=req.mentee_id,
+            mentor_id=req.mentor_id,
+            message=req.message,
+            status=req.status,
+            created_at=req.created_at,
+            updated_at=req.updated_at
+        )
+        for req in requests
+    ]
+
 @router.delete("/matching-requests/{request_id}")
 async def delete_matching_request(
     request_id: int,

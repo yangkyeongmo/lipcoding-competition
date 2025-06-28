@@ -127,3 +127,82 @@ async def upload_profile_image(
     db.commit()
     
     return {"message": "Profile image uploaded successfully"}
+
+# Alias endpoint for tests that expect /users/me/profile instead of /me
+@router.get("/users/me/profile", response_model=UserProfile)
+async def get_current_user_profile_alias(
+    current_user: User = Depends(get_current_user)
+):
+    """Get current user profile (alias endpoint)"""
+    tech_stack = None
+    if current_user.tech_stack:
+        try:
+            tech_stack = json.loads(current_user.tech_stack)
+        except json.JSONDecodeError:
+            tech_stack = []
+    
+    profile_image_url = get_profile_image_url(current_user)
+    
+    # Return user data with profile field for test compatibility
+    user_data = UserProfile(
+        id=current_user.id,
+        email=current_user.email,
+        name=current_user.name,
+        role=current_user.role,
+        bio=current_user.bio,
+        tech_stack=tech_stack,
+        profile_image_url=profile_image_url,
+        created_at=current_user.created_at,
+        updated_at=current_user.updated_at
+    )
+    
+    return user_data
+
+@router.put("/users/me/profile", response_model=UserProfile)
+async def update_current_user_profile_alias(
+    profile_update: UserProfileUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update current user profile (alias endpoint)"""
+    # Update fields if provided
+    if profile_update.name is not None:
+        current_user.name = profile_update.name
+    
+    if profile_update.bio is not None:
+        current_user.bio = profile_update.bio
+    
+    if profile_update.tech_stack is not None:
+        # Only mentors can have tech stack
+        if current_user.role == "mentor":
+            current_user.tech_stack = json.dumps(profile_update.tech_stack)
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Only mentors can have tech stack"
+            )
+    
+    db.commit()
+    db.refresh(current_user)
+    
+    # Return updated profile
+    tech_stack = None
+    if current_user.tech_stack:
+        try:
+            tech_stack = json.loads(current_user.tech_stack)
+        except json.JSONDecodeError:
+            tech_stack = []
+    
+    profile_image_url = get_profile_image_url(current_user)
+    
+    return UserProfile(
+        id=current_user.id,
+        email=current_user.email,
+        name=current_user.name,
+        role=current_user.role,
+        bio=current_user.bio,
+        tech_stack=tech_stack,
+        profile_image_url=profile_image_url,
+        created_at=current_user.created_at,
+        updated_at=current_user.updated_at
+    )
