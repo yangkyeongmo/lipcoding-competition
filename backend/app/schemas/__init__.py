@@ -69,7 +69,7 @@ class MentorListItem(BaseModel):
 # Matching schemas
 class MatchingRequestCreate(BaseModel):
     mentorId: int  # Changed from mentor_id to mentorId per API spec
-    menteeId: int  # Add menteeId field per API spec
+    menteeId: Optional[int] = None  # Make optional since it can be inferred from current user
     message: str  # Required per API spec
 
 class MatchingRequestResponse(BaseModel):

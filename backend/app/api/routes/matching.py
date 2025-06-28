@@ -19,7 +19,7 @@ async def create_matching_request(
     if current_user.role != "mentee":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only mentees can create matching requests"
+            detail={"error": "Only mentees can create matching requests"}
         )
     
     # Check if mentor exists
@@ -27,7 +27,7 @@ async def create_matching_request(
     if not mentor:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Mentor not found"
+            detail={"error": "Mentor not found"}
         )
     
     # Validate that menteeId matches current user

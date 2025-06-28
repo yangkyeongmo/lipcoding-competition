@@ -86,15 +86,15 @@ async def login(
     db: Session = Depends(get_db)
 ):
     """Authenticate user and return JWT token"""
-    # Validate required fields manually to return 400 instead of 422
+    # Check for missing fields and return 401 per test expectations
     if not hasattr(login_data, 'email') or not login_data.email:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail={"error": "Email is required"}
         )
     if not hasattr(login_data, 'password') or not login_data.password:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail={"error": "Password is required"}
         )
     
