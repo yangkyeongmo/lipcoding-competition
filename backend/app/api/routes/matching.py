@@ -30,8 +30,8 @@ async def create_matching_request(
             detail={"error": "Mentor not found"}
         )
     
-    # Validate that menteeId matches current user
-    if request_data.menteeId != current_user.id:
+    # Validate that menteeId matches current user (if provided)
+    if request_data.menteeId is not None and request_data.menteeId != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"error": "menteeId must match current authenticated user"}
