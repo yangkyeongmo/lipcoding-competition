@@ -1,6 +1,5 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
-from datetime import datetime
 
 # Auth schemas
 class SignupRequest(BaseModel):
@@ -19,58 +18,49 @@ class LoginResponse(BaseModel):
 # User schemas  
 class UserProfileData(BaseModel):
     """Profile data nested within user response"""
-    name: Optional[str] = None  # Add name field for C# tests
+    name: Optional[str] = None
     bio: Optional[str] = None
-    tech_stack: Optional[List[str]] = None
-    profile_image_url: Optional[str] = None
+    imageUrl: Optional[str] = None  # Changed from profile_image_url to match API spec
+    skills: Optional[List[str]] = None  # Changed from tech_stack to skills to match API spec
 
 class UserProfile(BaseModel):
     id: int
     email: str
-    name: str
     role: str
-    bio: Optional[str] = None
-    tech_stack: Optional[List[str]] = None
-    profile_image_url: Optional[str] = None
-    profile: Optional[UserProfileData] = None  # For backward compatibility with tests
-    created_at: datetime
-    updated_at: datetime
-
+    profile: UserProfileData  # Make this required to match API spec
+    
     class Config:
         from_attributes = True
 
 class UserProfileUpdate(BaseModel):
     name: Optional[str] = None
     bio: Optional[str] = None
-    tech_stack: Optional[List[str]] = None
-    role: Optional[str] = None  # Add role for validation purposes
+    image: Optional[str] = None  # Base64 encoded image string per API spec
+    skills: Optional[List[str]] = None  # Changed from tech_stack to skills
+    role: Optional[str] = None
 
 # Mentor schemas
 class MentorListItem(BaseModel):
     id: int
-    name: str
+    email: str  # Add email field per API spec
     role: str
-    bio: Optional[str] = None
-    tech_stack: Optional[List[str]] = None
-    profile_image_url: Optional[str] = None
-    profile: Optional[UserProfileData] = None  # For backward compatibility with tests
+    profile: UserProfileData  # Make this required to match API spec
 
     class Config:
         from_attributes = True
 
 # Matching schemas
 class MatchingRequestCreate(BaseModel):
-    mentor_id: int
+    mentorId: int  # Changed from mentor_id to mentorId per API spec
+    menteeId: int  # Add menteeId field per API spec
     message: Optional[str] = None
 
 class MatchingRequestResponse(BaseModel):
     id: int
-    mentee_id: int
-    mentor_id: int
+    mentorId: int  # Changed from mentor_id to mentorId per API spec  
+    menteeId: int  # Changed from mentee_id to menteeId per API spec
     message: Optional[str] = None
     status: str
-    created_at: datetime
-    updated_at: datetime
 
     class Config:
         from_attributes = True

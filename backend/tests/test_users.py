@@ -64,12 +64,12 @@ class TestUserProfile:
         """Test updating profile with valid data should return 200"""
         update_data = {
             "name": "Test Name Updated",
-            "bio": "Updated bio",
-            "tech_stack": ["Python", "JavaScript"]
+            "bio": "Updated bio"
+            # Remove tech_stack for mentee as only mentors can have tech_stack
         }
         response = authenticated_mentee_client.put("/api/me", json=update_data)
-        # C# test expects OK or NoContent, but endpoint might not exist
-        assert response.status_code in [status.HTTP_200_OK, status.HTTP_204_NO_CONTENT, status.HTTP_404_NOT_FOUND]
+        # Should succeed with valid data
+        assert response.status_code in [status.HTTP_200_OK, status.HTTP_204_NO_CONTENT]
 
     def test_update_profile_with_mentee_data_should_return_200(self, authenticated_mentee_client):
         """Test updating profile with mentee data should return 200"""

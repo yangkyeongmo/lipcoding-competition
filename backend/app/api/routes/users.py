@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
-from typing import Optional
 import json
 import base64
 
@@ -10,50 +9,37 @@ from app.core.auth import get_current_user
 
 router = APIRouter()
 
-def get_profile_image_url(user: User) -> Optional[str]:
+def get_profile_image_url(user: User) -> str:
     """Get profile image URL for user"""
-    if user.profile_image:
-        return f"data:image/{user.profile_image_filename.split('.')[-1]};base64,{base64.b64encode(user.profile_image).decode()}"
-    else:
-        # Return default placeholder image
-        if user.role == "mentor":
-            return "https://placehold.co/500x500.jpg?text=MENTOR"
-        else:
-            return "https://placehold.co/500x500.jpg?text=MENTEE"
+    return f"/images/{user.role}/{user.id}"
 
 @router.get("/me", response_model=UserProfile)
 async def get_current_user_profile(
     current_user: User = Depends(get_current_user)
 ):
     """Get current user profile"""
-    tech_stack = None
+    skills = None
     if current_user.tech_stack:
         try:
-            tech_stack = json.loads(current_user.tech_stack)
+            skills = json.loads(current_user.tech_stack)
         except json.JSONDecodeError:
-            tech_stack = []
+            skills = []
     
     profile_image_url = get_profile_image_url(current_user)
     
-    # Create profile data for tests that expect it
+    # Create profile data according to API spec
     profile_data = {
         "name": current_user.name,
         "bio": current_user.bio,
-        "tech_stack": tech_stack,
-        "profile_image_url": profile_image_url
+        "imageUrl": profile_image_url,
+        "skills": skills
     }
     
     return UserProfile(
         id=current_user.id,
         email=current_user.email,
-        name=current_user.name,
         role=current_user.role,
-        bio=current_user.bio,
-        tech_stack=tech_stack,
-        profile_image_url=profile_image_url,
-        profile=profile_data,
-        created_at=current_user.created_at,
-        updated_at=current_user.updated_at
+        profile=profile_data
     )
 
 @router.put("/me", response_model=UserProfile)
