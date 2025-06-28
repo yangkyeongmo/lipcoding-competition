@@ -1,0 +1,16 @@
+{
+  "name": "mentor-mentee-e2e-tests",
+  "version": "1.0.0",
+  "description": "End-to-end tests for mentor-mentee application",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:ui": "playwright test --ui",
+    "install:playwright": "playwright install",
+    "setup:test": "npm run install:playwright"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0"
+  }
+}
