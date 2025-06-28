@@ -51,36 +51,50 @@ def test_user_mentor():
     }
 
 @pytest.fixture
-def authenticated_mentee_client(client, test_user_mentee):
+def authenticated_mentee_client(test_user_mentee):
+    # Create a fresh client instance for mentee
+    Base.metadata.create_all(bind=engine)
+    mentee_client = TestClient(app)
+    
     # Create user
-    client.post("/api/signup", json=test_user_mentee)
+    mentee_client.post("/api/signup", json=test_user_mentee)
     
     # Login and get token
-    response = client.post("/api/login", json={
+    response = mentee_client.post("/api/login", json={
         "email": test_user_mentee["email"],
         "password": test_user_mentee["password"]
     })
     token = response.json()["token"]
     
     # Set authorization header
-    client.headers.update({"Authorization": f"Bearer {token}"})
-    return client
+    mentee_client.headers.update({"Authorization": f"Bearer {token}"})
+    yield mentee_client
+    
+    # Clean up
+    Base.metadata.drop_all(bind=engine)
 
 @pytest.fixture
-def authenticated_mentor_client(client, test_user_mentor):
+def authenticated_mentor_client(test_user_mentor):
+    # Create a fresh client instance for mentor
+    Base.metadata.create_all(bind=engine)
+    mentor_client = TestClient(app)
+    
     # Create user
-    client.post("/api/signup", json=test_user_mentor)
+    mentor_client.post("/api/signup", json=test_user_mentor)
     
     # Login and get token
-    response = client.post("/api/login", json={
+    response = mentor_client.post("/api/login", json={
         "email": test_user_mentor["email"],
         "password": test_user_mentor["password"]
     })
     token = response.json()["token"]
     
     # Set authorization header
-    client.headers.update({"Authorization": f"Bearer {token}"})
-    return client
+    mentor_client.headers.update({"Authorization": f"Bearer {token}"})
+    yield mentor_client
+    
+    # Clean up
+    Base.metadata.drop_all(bind=engine)
 
 @pytest.fixture
 def sample_image():

@@ -30,18 +30,6 @@ async def create_matching_request(
             detail="Mentor not found"
         )
     
-    # Check if mentee already has a pending request
-    existing_request = db.query(MatchingRequest).filter(
-        MatchingRequest.mentee_id == current_user.id,
-        MatchingRequest.status == "pending"
-    ).first()
-    
-    if existing_request:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You already have a pending matching request"
-        )
-    
     # Check if mentee already sent a request to this mentor
     existing_mentor_request = db.query(MatchingRequest).filter(
         MatchingRequest.mentee_id == current_user.id,

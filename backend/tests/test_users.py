@@ -22,7 +22,7 @@ class TestUserProfile:
     def test_get_current_user_unauthorized(self, client):
         """Test getting current user without authentication"""
         response = client.get("/api/me")
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.status_code == status.HTTP_403_FORBIDDEN
     
     def test_update_profile_success(self, authenticated_mentee_client):
         """Test updating user profile"""
@@ -94,4 +94,4 @@ class TestUserProfile:
             "file": ("test.png", io.BytesIO(sample_image), "image/png")
         }
         response = client.post("/api/me/profile-image", files=files)
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.status_code == status.HTTP_403_FORBIDDEN

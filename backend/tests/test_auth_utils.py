@@ -55,13 +55,16 @@ class TestAuthUtils:
         payload = verify_token(token)
         assert payload is not None
         
-        # Check if expiration is approximately correct (within 1 minute tolerance)
+        # Check if expiration is approximately correct
         exp_timestamp = payload.get("exp")
-        expected_exp = datetime.utcnow() + expires_delta
-        actual_exp = datetime.fromtimestamp(exp_timestamp)
+        actual_exp = datetime.utcfromtimestamp(exp_timestamp)
         
-        # Allow 1 minute tolerance for processing time
-        assert abs((actual_exp - expected_exp).total_seconds()) < 60
+        # Calculate expected expiration time 
+        expected_exp = datetime.utcnow() + expires_delta
+        
+        # Allow reasonable tolerance (within 30 seconds) for processing time
+        time_diff = abs((actual_exp - expected_exp).total_seconds())
+        assert time_diff < 30, f"Time difference too large: {time_diff} seconds"
     
     def test_verify_token_valid(self):
         """Test token verification with valid token"""
@@ -112,58 +115,65 @@ class TestAuthUtils:
     
     def test_authenticate_user_success(self, client):
         """Test user authentication with correct credentials"""
-        from app.database import TestingSessionLocal, User
+        # Use the override_get_db function to get test database session
+        from tests.conftest import override_get_db
+        from app.database import User
         from app.core.auth import get_password_hash
         
-        # Create test user in database
-        db = TestingSessionLocal()
-        hashed_password = get_password_hash("testpassword123")
-        test_user = User(
-            email="test@example.com",
-            hashed_password=hashed_password,
-            name="Test User",
-            role="mentee"
-        )
-        db.add(test_user)
-        db.commit()
-        db.refresh(test_user)
-        
-        # Test authentication
-        authenticated_user = authenticate_user(db, "test@example.com", "testpassword123")
-        assert authenticated_user is not None
-        assert authenticated_user.email == "test@example.com"
-        assert authenticated_user.name == "Test User"
-        
-        db.close()
+        # Get database session using the same method as the test fixtures
+        db = next(override_get_db())
+        try:
+            hashed_password = get_password_hash("testpassword123")
+            test_user = User(
+                email="test@example.com",
+                hashed_password=hashed_password,
+                name="Test User",
+                role="mentee"
+            )
+            db.add(test_user)
+            db.commit()
+            db.refresh(test_user)
+            
+            # Test authentication
+            authenticated_user = authenticate_user(db, "test@example.com", "testpassword123")
+            assert authenticated_user is not None
+            assert authenticated_user.email == "test@example.com"
+            assert authenticated_user.name == "Test User"
+        finally:
+            db.close()
     
     def test_authenticate_user_wrong_email(self, client):
         """Test authentication with non-existent email"""
-        from app.database import TestingSessionLocal
+        from tests.conftest import override_get_db
         
-        db = TestingSessionLocal()
-        authenticated_user = authenticate_user(db, "nonexistent@example.com", "password")
-        assert authenticated_user is None
-        db.close()
+        db = next(override_get_db())
+        try:
+            authenticated_user = authenticate_user(db, "nonexistent@example.com", "password")
+            assert authenticated_user is None
+        finally:
+            db.close()
     
     def test_authenticate_user_wrong_password(self, client):
         """Test authentication with wrong password"""
-        from app.database import TestingSessionLocal, User
+        from tests.conftest import override_get_db
+        from app.database import User
         from app.core.auth import get_password_hash
         
         # Create test user
-        db = TestingSessionLocal()
-        hashed_password = get_password_hash("correctpassword")
-        test_user = User(
-            email="test2@example.com",
-            hashed_password=hashed_password,
-            name="Test User 2",
-            role="mentee"
-        )
-        db.add(test_user)
-        db.commit()
-        
-        # Test with wrong password
-        authenticated_user = authenticate_user(db, "test2@example.com", "wrongpassword")
-        assert authenticated_user is None
-        
-        db.close()
+        db = next(override_get_db())
+        try:
+            hashed_password = get_password_hash("correctpassword")
+            test_user = User(
+                email="test2@example.com",
+                hashed_password=hashed_password,
+                name="Test User 2",
+                role="mentee"
+            )
+            db.add(test_user)
+            db.commit()
+            
+            # Test with wrong password
+            authenticated_user = authenticate_user(db, "test2@example.com", "wrongpassword")
+            assert authenticated_user is None
+        finally:
+            db.close()

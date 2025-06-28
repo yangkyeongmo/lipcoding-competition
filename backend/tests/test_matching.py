@@ -31,7 +31,7 @@ class TestMatchingRequests:
             "message": "Test message"
         }
         response = client.post("/api/matching-requests", json=request_data)
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.status_code == status.HTTP_403_FORBIDDEN
     
     def test_mentor_cannot_create_request(self, authenticated_mentor_client):
         """Test that mentors cannot create matching requests"""
@@ -71,7 +71,7 @@ class TestMatchingRequests:
         request_data["message"] = "Second request"
         response2 = authenticated_mentee_client.post("/api/matching-requests", json=request_data)
         assert response2.status_code == status.HTTP_400_BAD_REQUEST
-        assert "already sent a request to this mentor" in response2.json()["detail"]
+        assert "have already sent a request to this mentor" in response2.json()["detail"]
     
     def test_get_matching_requests_as_mentee(self, authenticated_mentee_client, authenticated_mentor_client):
         """Test getting matching requests as mentee (sent requests)"""

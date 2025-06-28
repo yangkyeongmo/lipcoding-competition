@@ -7,9 +7,9 @@ class TestDatabaseModels:
     
     def test_user_model_creation(self, client):
         """Test User model creation and attributes"""
-        from app.database import TestingSessionLocal
+        from tests.conftest import override_get_db
         
-        db = TestingSessionLocal()
+        db = next(override_get_db())
         
         # Create a user
         user = User(
@@ -39,9 +39,9 @@ class TestDatabaseModels:
     
     def test_matching_request_model_creation(self, client):
         """Test MatchingRequest model creation and attributes"""
-        from app.database import TestingSessionLocal
+        from tests.conftest import override_get_db
         
-        db = TestingSessionLocal()
+        db = next(override_get_db())
         
         # Create users first
         mentee = User(
@@ -88,10 +88,10 @@ class TestDatabaseModels:
     
     def test_user_email_uniqueness(self, client):
         """Test that user emails must be unique"""
-        from app.database import TestingSessionLocal
+        from tests.conftest import override_get_db
         from sqlalchemy.exc import IntegrityError
         
-        db = TestingSessionLocal()
+        db = next(override_get_db())
         
         # Create first user
         user1 = User(
@@ -121,9 +121,9 @@ class TestDatabaseModels:
     
     def test_matching_request_status_values(self, client):
         """Test matching request with different status values"""
-        from app.database import TestingSessionLocal
+        from tests.conftest import override_get_db
         
-        db = TestingSessionLocal()
+        db = next(override_get_db())
         
         # Create users
         mentee = User(
@@ -165,9 +165,9 @@ class TestDatabaseModels:
     
     def test_user_profile_image_storage(self, client):
         """Test storing profile image as binary data"""
-        from app.database import TestingSessionLocal
+        from tests.conftest import override_get_db
         
-        db = TestingSessionLocal()
+        db = next(override_get_db())
         
         # Sample image data (small PNG)
         image_data = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde'

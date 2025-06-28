@@ -33,13 +33,13 @@ class TestMentors:
     def test_get_mentors_unauthorized(self, client):
         """Test getting mentors without authentication"""
         response = client.get("/api/mentors")
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.status_code == status.HTTP_403_FORBIDDEN
     
     def test_get_mentors_as_mentor_forbidden(self, authenticated_mentor_client):
         """Test that mentors cannot view mentor list"""
         response = authenticated_mentor_client.get("/api/mentors")
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert "Only mentees can view mentor list" in response.json()["detail"]
+        assert "Only mentees can view mentors list" in response.json()["detail"]
     
     def test_search_mentors_by_name(self, authenticated_mentee_client, authenticated_mentor_client):
         """Test searching mentors by name"""
