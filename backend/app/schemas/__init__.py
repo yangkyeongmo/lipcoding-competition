@@ -99,3 +99,13 @@ class MatchingRequestUpdate(BaseModel):
 class ErrorResponse(BaseModel):
     error: str
     details: Optional[str] = None
+
+# Export all schemas
+__all__ = [
+    "SignupRequest", "LoginRequest", "LoginResponse",
+    "UserProfile", "UserProfileData", "UserProfileUpdate", 
+    "UpdateMentorProfileRequest", "UpdateMenteeProfileRequest",
+    "MentorListItem", 
+    "MatchingRequestCreate", "MatchingRequestResponse", "MatchingRequestOutgoing", "MatchingRequestUpdate",
+    "ErrorResponse"
+]
